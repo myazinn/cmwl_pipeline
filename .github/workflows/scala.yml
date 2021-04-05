@@ -1,4 +1,4 @@
-name: Cromwell Pipeline Scala CI
+name: Scala CI
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         scala: [ 2.12.10 ]
-        java: [ adopt@11 ]
+        java: [ adopt@1.11 ]
 
     runs-on: ${{ matrix.os }}
 
