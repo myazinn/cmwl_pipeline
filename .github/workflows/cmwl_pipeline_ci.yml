@@ -1,21 +1,21 @@
 name: CMWL Pipeline CI
 
 on:
-  push:
-    branches:
-      - develop
-      - master
-  pull_request:
-    branches:
-      - develop
-      - master
+  workflow_run:
+    workflows:
+      - 'PR Info Check'
+    types:
+      - completed
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout current branch
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
