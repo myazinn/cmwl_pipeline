@@ -64,7 +64,7 @@ class RunServiceTest extends AsyncWordSpec with Matchers with MockitoSugar {
         when(runRepository.getRunByIdAndUser(runId, run.userId)).thenReturn(Future.successful(Some(run)))
         when(runRepository.deleteRunById(runId)).thenReturn(Future.successful(1))
 
-        runService.deleteRunById(runId, run.userId).map { _ shouldBe 1 }
+        runService.deleteRunById(runId, run.userId).map { _ shouldBe 2 }
       }
     }
 
