@@ -112,4 +112,9 @@ class ApplicationConfig(val config: Config) {
 object ApplicationConfig {
   def load(config: Config = ConfigFactory.load()): ApplicationConfig =
     new ApplicationConfig(config)
+
+  def unapply(
+    config: ApplicationConfig
+  ): Option[(WebServiceConfig, AuthConfig, GitLabConfig, MongoConfig, PostgreConfig)] =
+    Option((config.webServiceConfig, config.authConfig, config.gitLabConfig, config.mongoConfig, config.postgreConfig))
 }
