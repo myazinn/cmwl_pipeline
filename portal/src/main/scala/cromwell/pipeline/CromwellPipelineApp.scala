@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ RejectionHandler, Route, ValidationRejection }
 import cromwell.pipeline.auth.token.MissingAccessTokenRejection
 import cromwell.pipeline.datastorage.dto.auth.AccessTokenContent
-import cromwell.pipeline.utils.LogInfoUtils
+import cromwell.pipeline.utils.configs.LogInfoUtils
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
