@@ -1,9 +1,10 @@
 package cromwell.pipeline.utils.configs
 
 import cromwell.pipeline.utils._
+import cromwell.pipeline.utils.configs.SecretData._
 import play.api.libs.functional.syntax.{ toFunctionalBuilderOps, unlift }
 import play.api.libs.json.Format.GenericFormat
-import play.api.libs.json.{ JsString, Json, Writes, __ }
+import play.api.libs.json.{ Json, Writes, __ }
 
 trait LogInfoUtils {
   def getConfigMessage: String
@@ -11,13 +12,9 @@ trait LogInfoUtils {
 
 object LogInfoUtils {
 
-  implicit val secretWrites: Writes[SecretData] = Writes { (secret: SecretData) =>
-    JsString(secret.secretData.toUpperCase())
-  }
-
-  case class SecretData(secretData: String, owner: String)
-
   def getConfigMessage(applicationConfig: ApplicationConfig): String = {
+
+    val secretCAWrites: Writes[SecretData[Array[Char]]] = secretDataWrites(Writes.StringWrites.contramap(new String(_)))
 
     implicit val wsWrites: Writes[WebServiceConfig] =
       ((__ \ "interface").write[String] ~
@@ -29,33 +26,30 @@ object LogInfoUtils {
         (__ \ "userSession").write[Long])(unlift(ExpirationTimeInSeconds.unapply))
 
     implicit val authWrites: Writes[AuthConfig] =
-      ((__ \ "secretKey").write[String] ~
+      ((__ \ "secretKey").write[SecretData[String]] ~
         (__ \ "hmacAlgorithm").write[String] ~
         (__ \ "expirationTimeInSeconds").write[ExpirationTimeInSeconds])(
         authConfig =>
-          unlift(AuthConfig.unapply)(authConfig)
-            .copy(_1 = authConfig.secretKey.map(_ => "*").mkString(""), _2 = authConfig.hmacAlgorithm.toString)
+          unlift(AuthConfig.unapply)(authConfig).copy(_1 = authConfig.secretKey, _2 = authConfig.hmacAlgorithm.toString)
       )
 
     implicit val gitLabWrites: Writes[GitLabConfig] =
       ((__ \ "url").write[String] ~
-        (__ \ "token").write[String] ~
+        (__ \ "token").write[SecretData[Map[String, String]]] ~
         (__ \ "defaultFileVersion").write[String] ~
         (__ \ "defaultBranch").write[String])(
-        gitLabConfig =>
-          unlift(GitLabConfig.unapply)(gitLabConfig).copy(_2 = gitLabConfig.token.head._2.map(_ => "*").mkString(""))
+        gitLabConfig => unlift(GitLabConfig.unapply)(gitLabConfig).copy(_2 = gitLabConfig.token)
       )
 
     implicit val mongoWrites: Writes[MongoConfig] =
       ((__ \ "user").write[String] ~
-        (__ \ "password").write[String] ~
+        (__ \ "password").write[SecretData[Array[Char]]](secretCAWrites) ~
         (__ \ "host").write[String] ~
         (__ \ "port").write[Int] ~
         (__ \ "authenticationDatabase").write[String] ~
         (__ \ "database").write[String] ~
         (__ \ "collection").write[String])(
-        mongoConfig =>
-          unlift(MongoConfig.unapply)(mongoConfig).copy(_2 = mongoConfig.password.map(_ => "*").mkString(""))
+        mongoConfig => unlift(MongoConfig.unapply)(mongoConfig).copy(_2 = mongoConfig.password)
       )
 
     implicit val postgreWrites: Writes[PostgreConfig] =
@@ -63,9 +57,8 @@ object LogInfoUtils {
         (__ \ "portNumber").write[Int] ~
         (__ \ "databaseName").write[String] ~
         (__ \ "user").write[String] ~
-        (__ \ "password").write[String])(
-        postgreConfig =>
-          unlift(PostgreConfig.unapply)(postgreConfig).copy(_5 = postgreConfig.password.map(_ => "*").mkString(""))
+        (__ \ "password").write[SecretData[Array[Char]]](secretCAWrites))(
+        postgreConfig => unlift(PostgreConfig.unapply)(postgreConfig).copy(_5 = postgreConfig.password)
       )
 
     implicit val appConfigWrites: Writes[ApplicationConfig] =
